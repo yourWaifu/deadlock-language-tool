@@ -1,0 +1,16 @@
+{
+  "name": "deadlock-language-tool",
+  "version": "1.0.0",
+  "description": "just-a-script-to-read-translation-files",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm index.js"
+  },
+  "author": "yourWaifu",
+  "license": "ISC",
+  "dependencies": {
+    "to-shavian": "^0.3.1",
+    "tokenizr": "^1.7.0"
+  },
+  "type": "module"
+}
