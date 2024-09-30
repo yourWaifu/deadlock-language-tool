@@ -84,11 +84,11 @@ async function localizeFile(filePath) {
         
         let variableLexer = new Tokenizr();
 
-        variableLexer.rule(/\{.*?\}/, (ctx, match) => {
-            ctx.accept("variable");
+        variableLexer.rule(/\{(.*?)\}/, (ctx, match) => {
+            ctx.accept("variable", match[1]);
         });
-        variableLexer.rule(/%s\d/, (ctx, match) => {
-            ctx.accept("variable");
+        variableLexer.rule(/%(s\d)/, (ctx, match) => {
+            ctx.accept("variable", match[1]);
         });
         variableLexer.rule(/<\/[a-zA-Z]*?>/, (ctx, match) => {
             ctx.accept("xml-end");
@@ -96,8 +96,8 @@ async function localizeFile(filePath) {
         variableLexer.rule(/<[^>]+>/, (ctx, match) => {
             ctx.accept("xml");
         });
-        variableLexer.rule(/%\S*?%/, (ctx, match) => {
-            ctx.accept("variable");
+        variableLexer.rule(/%(\S*?)%/, (ctx, match) => {
+            ctx.accept("variable", match[1]);
         });
         variableLexer.rule(/\\./, (ctx, match) => {
             ctx.accept("escape");
@@ -126,23 +126,24 @@ async function localizeFile(filePath) {
         tokenList.forEach((token) => {
             if (token.isA("plaintext")) {
                 textInputSplit.push(token.value);
-            } else if (token.isA("EOF")) {
+            } else if (token.isA("EOF")) { // end of file
                 return;
+            } else if (token.isA("variable")) {
+                textInputSplit.push(`{${token.value}}`); // variable identifier
+                variableTokenList.push(token.text);
             } else {
-                textInputSplit.push("{}"); // variable identifier
-                variableTokenList.push(token.value);
+                textInputSplit.push("{}"); // split identifier
+                variableTokenList.push(token.text);
             }
         });
         let translatedText = toShavian(textInputSplit.join(""));
-        let translatedTextSplit = translatedText.split('{}');
+        let translatedTextSplit = translatedText.split(/\{(.*?)\}/);
         let transformedTextSplit = [];
-        const maxLength = Math.max(translatedTextSplit.length, variableTokenList.length);
-        for (let i = 0; i < maxLength; i += 1) {
-            if (i < translatedTextSplit.length) {
+        for (let i = 0; i < translatedTextSplit.length; i += 1) {
+            if (i % 2 !== 0 && ((i - 1) / 2) < variableTokenList.length) {
+                transformedTextSplit.push(variableTokenList[(i - 1) / 2]);
+            } else {
                 transformedTextSplit.push(translatedTextSplit[i]);
-            }
-            if (i < variableTokenList.length) {
-                transformedTextSplit.push(variableTokenList[i]);
             }
         }
 
