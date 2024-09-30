@@ -1,3 +1,28 @@
+Automatic language translation tool for the game Deadlock
+
+## Features
+
+|  feature   |   example  | result |
+| --- | ----- | ---- |
+| auto text | Good day | 𐑜𐑦𐑛 𐑛𐑱 |
+| variables | +{points} HP for {cost} dollars | +2 HP for 4 dollars |
+| formats | %s1's %s2 | Dave's Garage |
+| pre/post fix | 4m/s | 4 米/秒 |
+| XML | \<span class="bold"\>The \<span class="red"\>burn\</\span></span> | The burn (with style)
+| escape | multiple\nlines | multiple (new line) lines
+
+| Language | yes | no | broken | incomplete |
+| ---- | ---- | ---- | ---- | ---- |
+| Map Legend | ✔️ | ❌ | ⛓️‍💥 | 🏗️ |
+
+| Language | text | variables | format | pre/post fix | XML | escape |
+| ----- | ---- | ---- | ---- | ---- | ---- | ---- |
+| Shavian | ✔️ | ✔️ | ⛓️‍💥 | ❌ | ✔️ | ✔️ |
+
+
+
+## How to use
+
 copy steamapps\common\Project8Staging\game\citadel\resource\localization to resource\localization to resources
 
 running the script:
