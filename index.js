@@ -2,73 +2,119 @@ import fs from 'node:fs/promises';
 import Tokenizr from "tokenizr";
 import toShavian from "to-shavian";
 import path from "node:path";
+import crypto from "node:crypto";
+import protobuf from "protobufjs/light.js";
+
+// because translating text cost time and money, we want to avoid redoing already finished work
+// So we need to know if previous strings are identical but putting hash has in JSON would create
+// huge files so we store our data in protobuf to save space
+let fileCacheType = new protobuf.Type("FileCache");
+fileCacheType.add(new protobuf.Field("language", 1, "string"));
+fileCacheType.add(new protobuf.Field("inputFile", 2, "string"));
+fileCacheType.add(new protobuf.Field("date", 3, "double"));
+fileCacheType.add(new protobuf.MapField("hashMap", 4, "string", "bytes"));
+var protobufRoot = new protobuf.Root().define("Cache").add(fileCacheType);
+let CacheType = new protobuf.Type("Cache");
+CacheType.add(new protobuf.Field("files", 1, "FileCache", "repeated"));
+CacheType.add(new protobuf.Field("charCount", 2, "double"));
+protobufRoot.add(CacheType);
+
+let charCounter = 0;
 
 async function localizeFile(filePath) {
-    let filePromise = fs.readFile(filePath, 'utf8');
+    let targetLanguage = "shavian";
+    let languageCache = cache.get(targetLanguage);
+    let isFirstTime = !languageCache;
+    if (!languageCache) {
+        cache.set(targetLanguage, new Map());
+        languageCache = cache.get(targetLanguage);
+    }
 
-    let lexer = new Tokenizr();
-
-    lexer.rule(/\/\/[^\r\n]*\r?\n/, (ctx, match) => {
-        ctx.ignore()
-    });
-    lexer.rule(/[ \t\r\n]+/, (ctx, match) => {
-        ctx.ignore();
-    });
-    lexer.rule(/"((?:\\"|[^"\r\n])*)"/, (ctx, match) => {
-        ctx.accept("string", match[1].replace(/\\"/g, "\""))
-    });
-    lexer.rule(/./, (ctx, match) => {
-        ctx.accept("char")
-    });
-
-    let input = await filePromise;
-    lexer.input(input);
-
-    let tokenList = lexer.tokens();
+    let outputName = path.basename(filePath, ".txt");
+    outputName = `${outputName.substring(0, outputName.lastIndexOf('_'))}_${targetLanguage}.txt`;
+    let outputDir = path.join("out/", path.dirname(filePath));
+    let outputPath = path.join(outputDir, outputName);
 
     // ----------------
     // PARSER
     // ----------------
-    let result = new Map();
-    let index = 0;
+    let parseFile = async (filePromise) => {
+        let lexer = new Tokenizr();
 
-    function parse(current) {
-        let token;
-        while (index < tokenList.length) {
-            // the format always starts with a id
-            token = tokenList[index];
-            if (!token.isA("string")) {
+        lexer.rule(/\/\/[^\r\n]*\r?\n/, (ctx, match) => {
+            ctx.ignore()
+        });
+        lexer.rule(/[ \t\r\n]+/, (ctx, match) => {
+            ctx.ignore();
+        });
+        lexer.rule(/"((?:\\"|[^"\r\n])*)"/, (ctx, match) => {
+            ctx.accept("string", match[1].replace(/\\"/g, "\""))
+        });
+        lexer.rule(/./, (ctx, match) => {
+            ctx.accept("char")
+        });
+
+        let input = await filePromise;
+        lexer.input(input);
+
+        let tokenList = lexer.tokens();
+
+        let result = new Map();
+        let index = 0;
+    
+        function parse(current) {
+            let token;
+            while (index < tokenList.length) {
+                // the format always starts with a id
+                token = tokenList[index];
+                if (!token.isA("string")) {
+                    index += 1;
+                    continue;
+                }
+                let id = token.value;
                 index += 1;
-                continue;
+                // after the id is the value
+                token = tokenList[index];
+                if (token.isA("char", "{")) {
+                    let obj = new Map();
+                    index += 1;
+                    parse(obj);
+                    current.set(id, obj);
+                } else if (token.isA("string")) {
+                    current.set(id, token.value);
+                    index += 1;
+                }
+                // end of id value pair
+                token = tokenList[index];
+                if (token.isA("char", "}")) {
+                    break;
+                }
             }
-            let id = token.value;
-            index += 1;
-            // after the id is the value
-            token = tokenList[index];
-            if (token.isA("char", "{")) {
-                let obj = new Map();
-                index += 1;
-                parse(obj);
-                current.set(id, obj);
-            } else if (token.isA("string")) {
-                current.set(id, token.value);
-                index += 1;
-            }
-            // end of id value pair
-            token = tokenList[index];
-            if (token.isA("char", "}")) {
-                break;
+        }
+    
+        parse(result);
+        return result;
+    }
+    
+    let resultPromise = parseFile(fs.readFile(filePath, 'utf8'));
+
+    // read the previous one if it exist
+    let prevRun = null;
+    if (!isFirstTime) {
+        try {
+            prevRun = await parseFile(fs.readFile(outputPath, 'utf8'))
+        } catch (err) {
+            if (err.code !== "ENOENT") {
+                throw err;
             }
         }
     }
 
-    parse(result);
+    let result = await resultPromise;
 
     // --------------
     // Convert
     // --------------
-
-    let targetLanguage = "shavian";
 
     // 2nd token stage
     let knownVariableSet = new Set("{", "}", "%s1", '%s2', '%s3', "<", ">", "\\");
@@ -76,10 +122,25 @@ async function localizeFile(filePath) {
     let lang = result.get("lang");
     lang.set("Language", targetLanguage);
     let valueMap = lang.get("Tokens");
-    for (const [key, value] of lang.get("Tokens")) {
+    let hashMap = new Map();
+    for (const [key, value] of valueMap) {
         // ignore postfix and prefix, due to automation failing here
         if (/.*(_postfix|_prefix)$/.test(key)) {
             continue;
+        }
+
+        let hash = crypto.hash("md5", value, "buffer");
+        hashMap.set(key, hash);
+
+        if (prevRun !== null && !isFirstTime) {
+            let prevInputHash = languageCache.get(key)?.inputHash;
+            if (prevInputHash && prevInputHash.compare(hash) === 0) { // if both inputs are equal
+                let prevValue = prevRun.get("lang")?.get("Tokens")?.get(key);
+                if (prevValue) {
+                    valueMap.set(key, prevValue);
+                    continue;
+                }
+            }
         }
         
         let variableLexer = new Tokenizr();
@@ -136,7 +197,9 @@ async function localizeFile(filePath) {
                 variableTokenList.push(token.text);
             }
         });
-        let translatedText = toShavian(textInputSplit.join(""));
+        let textToTranslate = textInputSplit.join("");
+        charCounter += textToTranslate.length;   // count chars for the AI cost calculator
+        let translatedText = toShavian(textToTranslate);
         let translatedTextSplit = translatedText.split(/\{(.*?)\}/);
         let transformedTextSplit = [];
         for (let i = 0; i < translatedTextSplit.length; i += 1) {
@@ -148,7 +211,7 @@ async function localizeFile(filePath) {
         }
 
         // Software often uses variables in their strings for language formats and changing values in text 
-        valueMap.set(key, transformedTextSplit.join("").replace(/\"/g, "\\\""));
+        valueMap.set(key, transformedTextSplit.join(""));
         variableLexer.reset();
     }
 
@@ -164,23 +227,78 @@ async function localizeFile(filePath) {
                 serialize(value, `${level}\t`);
                 outputList.push(`${level}}`);
             } else if (value instanceof String || typeof(value) === 'string') {
-                outputList.push(`${level}\"${key}\"\t\t\"${value}\"`);
+                // don't forget to convert the " letter to \"
+                outputList.push(`${level}\"${key}\"\t\t\"${value.replace(/\"/g, "\\\"")}\"`);
             }
         });
     }
     serialize(result, "");
     let output = outputList.join("\r\n");
 
-    let outputName = path.basename(filePath, ".txt");
-    outputName = `${outputName.substring(0, outputName.lastIndexOf('_'))}_${targetLanguage}.txt`;
-    let outputDir = path.join("out/", path.dirname(filePath));
     let directoryPromise = fs.mkdir(outputDir, {recursive: true});
     await directoryPromise;
-    return fs.writeFile(path.join(outputDir, outputName), output, {flag: 'w', encoding: 'utf8'});
+    await fs.writeFile(outputPath, output, {flag: 'w', encoding: 'utf8'});
+    return {
+        language: targetLanguage,
+        inputFile: filePath,
+        date: Date.now(),
+        hashMap: Object.fromEntries(hashMap),
+    }
 }
 
-localizeFile('./resources/citadel_attributes/citadel_attributes_english.txt');
-localizeFile('./resources/citadel_gc/citadel_gc_english.txt');
-localizeFile('./resources/citadel_heroes/citadel_heroes_english.txt');
-localizeFile('./resources/citadel_main/citadel_main_english.txt');
-localizeFile('./resources/citadel_mods/citadel_mods_english.txt');
+let cache = new Map();
+await (async () => {
+    let cacheJSObj;
+    try {
+        let cacheFile = await fs.readFile("out/cache.buffer");
+        let cacheProtobuf = CacheType.decode(cacheFile);
+        cacheJSObj = CacheType.toObject(cacheProtobuf);
+    } catch(err) {
+        if (err.code === "ENOENT") {
+            return;
+        } else {
+            throw err;
+        }
+    }
+
+    for (let file of cacheJSObj.files) {
+        let languageCache = cache.get(file.language);
+        if (!languageCache) {
+            cache.set(file.language, new Map());
+            languageCache = cache.get(file.language);
+        }
+        for (let key in file.hashMap) {
+            languageCache.set(key, { inputHash: file.hashMap[key] });
+        }
+    }
+})();
+
+let everyTask = Promise.all([
+    localizeFile('./resources/citadel_attributes/citadel_attributes_english.txt'),
+    localizeFile('./resources/citadel_gc/citadel_gc_english.txt'),
+    localizeFile('./resources/citadel_heroes/citadel_heroes_english.txt'),
+    localizeFile('./resources/citadel_main/citadel_main_english.txt'),
+    localizeFile('./resources/citadel_mods/citadel_mods_english.txt')
+]);
+
+let directoryPromise = fs.mkdir("out/", {recursive: true});
+await directoryPromise;
+fs.writeFile("out/cache.buffer", CacheType.encode(CacheType.create({
+    files: await everyTask,
+    charCount: charCounter,
+})).finish(), {flag: 'w', encoding: "binary"});
+fs.writeFile("out/date.html", ((reportList) => {
+    let dataToInclude = reportList.map((report) => {
+        return {date: report.date};
+    });
+    let script = `
+    let data = JSON.parse('${JSON.stringify(dataToInclude).replace(/\'/g, "\\\'")}');
+    data.forEach((report, index) => {
+        let dateElement = document.getElementById(\`\${index}.date\`);
+        dateElement.textContent = (new Date(report.date)).toLocaleString(undefined, {timeZoneName: "short"});
+    });
+    `;
+    return `<!DOCTYPE html><html><head></head><body>characters translated: ${charCounter}<br><br>${reportList.map((report, index) => {
+        return `<div>language: ${report.language}<br>input file: ${report.inputFile}<br>date: <span id="${index}.date">${report.date.toString()}</span></div>`;
+    }).join("<br>")}<script>${script}</script></body></html>`
+})(await everyTask), {flag: 'w', encoding: 'utf8'});

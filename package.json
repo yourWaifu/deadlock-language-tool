@@ -9,6 +9,7 @@
   "author": "yourWaifu",
   "license": "ISC",
   "dependencies": {
+    "protobufjs": "^7.4.0",
     "to-shavian": "^0.3.1",
     "tokenizr": "^1.7.0"
   },
