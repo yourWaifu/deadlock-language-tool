@@ -1,0 +1,1 @@
+This is a sample of all {feature_count} features.<br><br/>\n<span class="bold">Only allow if {name} is intact.</span>
