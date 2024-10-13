@@ -17,7 +17,7 @@ Automatic language translation tool for the game Deadlock. Not a replacement for
 | Language              | text | variables | format | affix | XML | new lines |
 | --------------------- | ---- | --------- | ------ | ----- | --- | --------- |
 | Shavian               | ✔️  | ✔️        | ⛓️‍💥    | 🇬🇧    | ✔️  | ✔️       |
-| Chinese (Traditional) | ❌  | ❌        | ❌    | ❌    | ❌ | ❌        |
+| Chinese (Traditional) | ✔️  | ✔️        | ✔️    | ❌    | ✔️ | ✔️        |
 | Japanese              | ❌  | ❌        | ❌    | ❌    | ❌ | ❌        |
 | Thai                  | ❌  | ❌        | ❌    | ❌    | ❌ | ❌        |
 
