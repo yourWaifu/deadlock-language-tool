@@ -3,10 +3,18 @@ import {translateFile, saveCache} from "./core.js";
 
 const projectId = 'ai-language-translation';
 const location = 'global';
-const languageCode = "yue";
-const languageName = "cantoese";
+const languageCode = "zh-tw";
+const languageName = "tchinese";
 
 const translationClient = new TranslationServiceClient();
+
+// includes google's attribution to follow their rules
+const googleTranslateAttribution = "󰀂"; // you need the special font to see it
+const googleShortAttribution = "󰀁";
+let translateAdditionList = new Map([
+    ["Citadel_Hud_DebugStats", (text) => `${googleShortAttribution} ${text}`],
+    ["Citadel_Dashboard_BuildVersion", (text) => `${text} ${googleTranslateAttribution}`],
+]);
 
 // TSV stands for tabs separated value
 async function translateTSV(tsv) {
@@ -14,7 +22,7 @@ async function translateTSV(tsv) {
     // batch translate
 }
 
-async function translateSingle(text) {
+async function translateSingle(text, id) {
     if (1024 < text.length) {
         console.log("text is too long for translate single, use translate TSV");
         throw new Error("text is too long");
@@ -29,7 +37,14 @@ async function translateSingle(text) {
     };
 
     const [response] = await translationClient.translateText(request);
-    return response.translations[0].translatedText;
+    let result = response.translations[0].translatedText;
+
+    let translateAddition = translateAdditionList.get(id);
+    if (translateAddition) {
+        return translateAddition(result);
+    }
+
+    return result;
 }
 
 function createConfig(){
@@ -61,8 +76,9 @@ function createConfig(){
                 tsv.push(`${id}\t${textToTranslate}\n`);
                 promiseMap.set(id, {resolve, reject});
             });*/
+
             onAllText();
-            return translateSingle(textToTranslate);
+            return translateSingle(textToTranslate, id);
         },
     };
 }
