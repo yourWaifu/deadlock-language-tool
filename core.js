@@ -166,15 +166,20 @@ export async function translateFile(filePath, langConfig) {
         }
     
         let hash = crypto.hash("md5", value, "buffer");
+
+        const setValue = (translated) => {
+            valueMap.set(key, translated);
+            langConfig["onText"]?.(key, translated);
+            hashMap.set(key, hash);
+        }
     
         if (prevRun !== null && !isFirstTime) {
             let prevInputHash = languageCache.get(key)?.inputHash;
             if (prevInputHash && prevInputHash.compare(hash) === 0) { // if both inputs are equal
                 let prevValue = prevRun.get("lang")?.get("Tokens")?.get(key);
                 if (typeof prevValue === "string" || prevValue instanceof String) {
-                    langConfig["onText"]?.(key, value);
                     langConfig["onCachedText"]?.(key, prevValue);
-                    valueMap.set(key, prevValue);
+                    setValue(prevValue);
                     return;
                 }
             }
@@ -260,10 +265,10 @@ export async function translateFile(filePath, langConfig) {
         }
         tokenList.forEach(translatorFormatInputTransformer[translatorFormat]);
         let textToTranslate = textInputSplit.join("");
-        charCounter += textToTranslate.length;   // count chars for the AI cost calculator
         let translatedText = "";
         try {
             translatedText = await langConfig["translate"](textToTranslate, key);
+            charCounter += textToTranslate.length;   // count chars for the AI cost calculator
         } catch {
             console.log(`Failed to translate ${key}, skipping`);
             valueMap.delete(key);
@@ -335,9 +340,7 @@ export async function translateFile(filePath, langConfig) {
     
         // Software often uses variables in their strings for language formats and changing values in text 
         let finishedText = fromTranslatedToOutTransformer[translatorFormat]();
-        valueMap.set(key, finishedText);
-        langConfig["onText"]?.(key, finishedText);
-        hashMap.set(key, hash);
+        setValue(finishedText);
         variableLexer.reset();
     }));
 
@@ -373,6 +376,7 @@ export async function translateFile(filePath, langConfig) {
 }
 
 let cache = new Map();
+let cachedFiles = new Map();
 await (async () => {
     let cacheJSObj;
     try {
@@ -388,6 +392,10 @@ await (async () => {
     }
 
     for (let file of cacheJSObj.files) {
+        cachedFiles.set(`${file.inputFile}:${file.language}`, {
+            ...file,
+            date: new Date(file.date)
+        });
         let languageCache = cache.get(file.language);
         if (!languageCache) {
             cache.set(file.language, new Map());
@@ -402,8 +410,15 @@ await (async () => {
 export async function saveCache(translateResultListPromise) {
     let directoryPromise = fs.mkdir("out/", {recursive: true});
     await directoryPromise;
+
+    let list = await translateResultListPromise;
+    list.forEach((file) => {
+        cachedFiles.set(`${file.inputFile}:${file.language}`, file);
+    });
+    let cachedFilesList = [...cachedFiles.values()];
+
     fs.writeFile("out/cache.buffer", CacheType.encode(CacheType.create({
-        files: await translateResultListPromise,
+        files: cachedFilesList,
         charCount: charCounter,
     })).finish(), {flag: 'w', encoding: "binary"});
     fs.writeFile("out/date.html", ((reportList) => {
@@ -420,5 +435,5 @@ export async function saveCache(translateResultListPromise) {
         return `<!DOCTYPE html><html><head></head><body>characters translated: ${charCounter}<br><br>${reportList.map((report, index) => {
             return `<div>language: ${report.language}<br>input file: ${report.inputFile}<br>date: <span id="${index}.date">${report.date.toString()}</span></div>`;
         }).join("<br>")}<script>${script}</script></body></html>`
-    })(await translateResultListPromise), {flag: 'w', encoding: 'utf8'});
+    })(cachedFilesList), {flag: 'w', encoding: 'utf8'});
 }
