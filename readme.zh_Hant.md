@@ -28,7 +28,7 @@
 | 詞綴 | 4m/s | 4米/秒 | ❌ |
 | XML | \<span class="bold"\>With \<span class="red"\>impact\</span>\</span> |  | ✔️ |
 | 新線路 | multiple\nlines |  | ✔️ |
-| 複數 | {d:spectators} Spectator#|#{d:spectators} Spectators | 5 Spectators | ❌ |
+| 複數 | {d:spectators} Spectator#\|#{d:spectators} Spectators | 5 Spectators | ❌ |
 
 
 ## 如何使用
