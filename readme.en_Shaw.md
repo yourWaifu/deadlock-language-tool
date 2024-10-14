@@ -28,6 +28,7 @@
 | 𐑨𐑓𐑦𐑒𐑕 | 4m/s |  | ❌ |
 | XML | \<span class="bold"\>With \<span class="red"\>impact\</span>\</span> |  | ✔️ |
 | 𐑯𐑦𐑢 ·𐑤𐑲𐑯𐑟 | multiple\nlines | | ✔️ |
+| 𐑐𐑤𐑫𐑮𐑩𐑤𐑟 | {d:spectators} Spectator#|#{d:spectators} Spectators | 5 Spectators | ❌ |
 
 
 ## 𐑣𐑬 𐑑 𐑿𐑟

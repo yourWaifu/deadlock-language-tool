@@ -29,6 +29,7 @@ Automatic language translation tool for the game Deadlock. Not a replacement for
 | affix     | 4m/s                                                                 | 4米/秒         | ❌     |
 | XML       | \<span class="bold"\>With \<span class="red"\>impact\</span>\</span> |                | ✔️     |
 | new lines | multiple\nlines                                                      |                | ✔️     |
+| plurals   | {d:spectators} Spectator#|#{d:spectators} Spectators                 | 5 Spectators   | ❌     |
 
 ## How to use
 
