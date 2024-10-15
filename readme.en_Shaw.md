@@ -29,6 +29,7 @@
 | XML | \<span class="bold"\>With \<span class="red"\>impact\</span>\</span> |  | ✔️ |
 | 𐑯𐑦𐑢 ·𐑤𐑲𐑯𐑟 | multiple\nlines | | ✔️ |
 | 𐑐𐑤𐑫𐑮𐑩𐑤𐑟 | {d:spectators} Spectator#\|#{d:spectators} Spectators | 5 Spectators | ❌ |
+| 𐑦𐑥𐑦𐑡 | ![killing_blow_english_png](https://github.com/user-attachments/assets/0cbedda8-c17a-4b75-b5f0-a1f6b35d5758) | ![killing_blow_korean_png](https://github.com/user-attachments/assets/07477e93-9712-4dcf-a0c4-927c7ee042bf) | ❌     |
 
 
 ## 𐑣𐑬 𐑑 𐑿𐑟
