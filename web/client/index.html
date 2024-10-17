@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript"  src="node_modules/paper/dist/paper-full.js"></script>
+    <script type="text/javascript" >
+        var fontSize = 73.5;
+        function firstBlood(text, paper) {
+            var content = text;
+            var strokeColor = "rgba(220, 47, 0, 0.929411765)";
+            var textColor = "#fff2db";
+            var text = new paper.PointText(new paper.Point(0, 0));
+            var matrix = new paper.Matrix();
+            matrix.skew(-8, 0, new paper.Point(175, 72.5));
+            matrix.rotate(-4, new paper.Point(175, 72.5))
+            matrix.translate(3, 74);
+
+            text.content = content;
+            text.matrix = matrix;
+            text.fontSize = fontSize;
+            text.fontFamily = "sans-serif";
+            text.fontWeight = "bold";
+            text.leading = 0.815 * text.fontSize;
+            text.strokeColor = strokeColor;
+            text.strokeWidth = 0.23 * text.fontSize;
+            text.strokeJoin = "round";
+            text.style = {
+                fillColor: "rgba(0,0,0,0)",
+            };
+            text.justification = "left";
+            var text2 = new paper.PointText(new paper.Point(175, 60));
+            text2.matrix = matrix;
+            text2.content = content;
+            text2.fontSize = text.fontSize;
+            text2.fontFamily = "sans-serif";
+            text2.fontWeight = "bold";
+            text2.leading = 0.815 * text.fontSize;
+            text2.strokeColor = "rgba(0,0,0,0)";
+            text2.strokeWidth = text.strokeWidth;
+            text2.style = {
+                fillColor: textColor,
+            };
+            text2.justification = "left";
+        }
+    </script>
+
+    <script type="text/paperscript" canvas="first-blood-english">
+        firstBlood("FIRST\n\u2001BLOOD", paper);
+    </script>
+    <script type="text/paperscript" canvas="first-blood-shavian">
+        firstBlood("𐑓𐑼𐑮𐑕𐑑 𐑚𐑤𐑩𐑛", paper);
+    </script>
+    <script type="text/paperscript" canvas="first-blood-tchinese">
+        firstBlood("第一滴血", paper);
+    </script>
+    <script type="text/paperscript" canvas="first-blood-japanese">
+        firstBlood("最初の血", paper);
+    </script>
+    <script type="text/paperscript" canvas="first-blood-thai">
+        firstBlood("เลือดแรก", paper);
+    </script>
+    <script type="text/paperscript" canvas="first-blood-cantonese">
+        firstBlood("第一血", paper);
+    </script>
+
+    <script>
+        var loadingFontSize = 32;
+        function loading(text, paper) {
+            var imageURL = "citadel_loading_base.png";
+            var raster = new paper.Raster({
+                source: imageURL,
+                width: 2048,
+                height: 1024,
+                position: paper.view.center,
+            });
+
+
+            var content = text;
+            var textColor = "rgba(192, 192, 192, 1)";
+            var text = new paper.PointText(new paper.Point(175, 60));
+
+            text.content = content;
+            text.fontSize = loadingFontSize;
+            text.fontFamily = "twemoji";
+            text.fontWeight = "bold";
+            text.leading = 0.815 * text.fontSize;
+            text.style = {
+                fillColor: textColor,
+            };
+            text.justification = "center";
+        }
+    </script>
+
+    <script type="text/paperscript" canvas="kill-streak-english">
+        firstBlood("KILL\n\t\tSTREAK", paper);
+    </script>
+    <script type="text/paperscript" canvas="kill-streak-shavian">
+        firstBlood("𐑒𐑦𐑤 𐑕𐑑𐑮𐑰𐑒", paper);
+    </script>
+    <script type="text/paperscript" canvas="kill-streak-tchinese">
+        firstBlood("連殺", paper);
+    </script>
+    <script type="text/paperscript" canvas="kill-streak-japanese">
+        firstBlood("連続キル", paper);
+    </script>
+    <script type="text/paperscript" canvas="kill-streak-thai">
+        firstBlood("ฆ่าสตรีค", paper);
+    </script>
+    <script type="text/paperscript" canvas="kill-streak-cantonese">
+        firstBlood("連殺", paper);
+    </script>
+
+    <script type="text/javascript" >
+        function killingblow(text, paper, size) {
+            var fontSize = size ?? 60;
+            var content = text;
+            var strokeColor = "rgba(220, 47, 0, 0.929411765)";
+            var textColor = "#fff2db";
+            var text = new paper.PointText(new paper.Point(0, 0));
+            var matrix = new paper.Matrix();
+            matrix.skew(-8, 0, new paper.Point(175, 72.5));
+            matrix.rotate(-8, new paper.Point(175, 72.5))
+            matrix.translate(8, 100);
+
+            text.content = content;
+            text.matrix = matrix;
+            text.fontSize = fontSize;
+            text.fontFamily = "sans-serif";
+            text.fontWeight = "bold";
+            text.leading = 0.815 * text.fontSize;
+            text.strokeColor = strokeColor;
+            text.strokeWidth = 0.24 * text.fontSize;
+            text.strokeJoin = "round";
+            text.style = {
+                fillColor: "rgba(0,0,0,0)",
+            };
+            text.justification = "left";
+            var text2 = new paper.PointText(new paper.Point(175, 60));
+            text2.matrix = matrix;
+            text2.content = content;
+            text2.fontSize = text.fontSize;
+            text2.fontFamily = "sans-serif";
+            text2.fontWeight = "bold";
+            text2.leading = 0.815 * text.fontSize;
+            text2.strokeColor = "rgba(0,0,0,0)";
+            text2.strokeWidth = text.strokeWidth;
+            text2.style = {
+                fillColor: textColor,
+            };
+            text2.justification = "left";
+        }
+    </script>
+
+    <script type="text/paperscript" canvas="killing-blow-english">
+        killingblow("Killing Blow", paper);
+    </script>
+    <script type="text/paperscript" canvas="killing-blow-shavian">
+        killingblow("𐑒𐑦𐑤𐑦𐑙 𐑚𐑤𐑴", paper);
+    </script>
+    <script type="text/paperscript" canvas="killing-blow-tchinese">
+        killingblow("致命一擊", paper);
+    </script>
+    <script type="text/paperscript" canvas="killing-blow-japanese">
+        killingblow("最後のヒット", paper);
+    </script>
+    <script type="text/paperscript" canvas="killing-blow-thai">
+        killingblow("การสังหารหมู่", paper, 57.5);
+    </script>
+    <script type="text/paperscript" canvas="killing-blow-cantonese">
+        killingblow("殺人打擊", paper);
+    </script>
+
+</head>
+<body>
+    <canvas id="first-blood-english" width="350" height="150"></canvas>
+    <canvas id="first-blood-shavian" width="350" height="150"></canvas>
+    <canvas id="first-blood-tchinese" width="350" height="150"></canvas>
+    <canvas id="first-blood-japanese" width="350" height="150"></canvas>
+    <canvas id="first-blood-thai" width="350" height="150"></canvas>
+    <canvas id="first-blood-cantonese" width="350" height="150"></canvas>
+    <br>
+    <canvas id="kill-streak-english" width="350" height="150"></canvas>
+    <canvas id="kill-streak-shavian" width="350" height="150"></canvas>
+    <canvas id="kill-streak-tchinese" width="350" height="150"></canvas>
+    <canvas id="kill-streak-japanese" width="350" height="150"></canvas>
+    <canvas id="kill-streak-thai" width="350" height="150"></canvas>
+    <canvas id="kill-streak-cantonese" width="350" height="150"></canvas>
+    <br>
+    <canvas id="killing-blow-english" width="363" height="138"></canvas>
+    <canvas id="killing-blow-shavian" width="363" height="138"></canvas>
+    <canvas id="killing-blow-tchinese" width="363" height="138"></canvas>
+    <canvas id="killing-blow-japanese" width="363" height="138"></canvas>
+    <canvas id="killing-blow-thai" width="363" height="138"></canvas>
+    <canvas id="killing-blow-cantonese" width="363" height="138"></canvas>
+</body>    
+</html>

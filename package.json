@@ -10,7 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/translate": "^8.5.0",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "paper": "^0.12.18",
     "protobufjs": "^7.4.0",
+    "rollup": "^4.24.0",
     "to-shavian": "^0.3.1",
     "tokenizr": "^1.7.0"
   },
