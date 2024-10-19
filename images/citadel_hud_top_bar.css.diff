@@ -1,0 +1,75 @@
+diff --git "a/.\\images\\original\\citadel_hud_top_bar.css" "b/.\\images\\citadel_hud_top_bar.css"
+index 61d8f5f..ffad80a 100644
+--- "a/.\\images\\original\\citadel_hud_top_bar.css"
++++ "b/.\\images\\citadel_hud_top_bar.css"
+@@ -852,11 +852,36 @@ Label.KillStreakText
+ 	background-position: center;
+ }
+ 
++.KillStreakImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak__png.vtex");
++}
++
+ .Language_english .KillStreakImageText
+ {
+ 	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak_english_png.vtex");
+ }
+ 
++.Language_cantonese .KillStreakImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak_cantonese_png.vtex");
++}
++
++.Language_japanese .KillStreakImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak_japanese_png.vtex");
++}
++
++.Language_shavian .KillStreakImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak_shavian_png.vtex");
++}
++
++.Language_tchinese .KillStreakImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak_tchinese_png.vtex");
++}
++
+ .Language_schinese .KillStreakImageText
+ {
+ 	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak_schinese_png.vtex");
+@@ -932,11 +957,33 @@ Label.KillStreakText
+ 	background-image: url("s2r://panorama/images/hud/text_images/kill_streak/kill_streak_ukrainian_png.vtex");
+ }
+ 
++.FirstBloodImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/first_blood/first_blood__png.vtex");
++}
++
+ .Language_english .FirstBloodImageText
+ {
+ 	background-image: url("s2r://panorama/images/hud/text_images/first_blood/first_blood_english_png.vtex");
+ }
+ 
++.Language_cantonese .FirstBloodImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/first_blood/first_blood_cantonese_png.vtex");
++}
++.Language_japanese .FirstBloodImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/first_blood/first_blood_japanese_png.vtex");
++}
++.Language_shavian .FirstBloodImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/first_blood/first_blood_shavian_png.vtex");
++}
++.Language_tchinese .FirstBloodImageText
++{
++	background-image: url("s2r://panorama/images/hud/text_images/first_blood/first_blood_tchinese_png.vtex");
++}
++
+ .Language_schinese .FirstBloodImageText
+ {
+ 	background-image: url("s2r://panorama/images/hud/text_images/first_blood/first_blood_schinese_png.vtex");

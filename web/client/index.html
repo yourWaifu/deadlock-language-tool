@@ -5,7 +5,7 @@
     <script type="text/javascript"  src="node_modules/paper/dist/paper-full.js"></script>
     <script type="text/javascript" >
         var fontSize = 73.5;
-        function firstBlood(text, paper) {
+        function firstBlood(text, paper, size, x, y) {
             var content = text;
             var strokeColor = "rgba(220, 47, 0, 0.929411765)";
             var textColor = "#fff2db";
@@ -13,11 +13,11 @@
             var matrix = new paper.Matrix();
             matrix.skew(-8, 0, new paper.Point(175, 72.5));
             matrix.rotate(-4, new paper.Point(175, 72.5))
-            matrix.translate(3, 74);
+            matrix.translate(x ?? 3, y ?? 74);
 
             text.content = content;
             text.matrix = matrix;
-            text.fontSize = fontSize;
+            text.fontSize = size ?? fontSize;
             text.fontFamily = "sans-serif";
             text.fontWeight = "bold";
             text.leading = 0.815 * text.fontSize;
@@ -61,6 +61,9 @@
     </script>
     <script type="text/paperscript" canvas="first-blood-cantonese">
         firstBlood("第一血", paper);
+    </script>
+    <script type="text/paperscript" canvas="first-blood-emoji">
+        firstBlood("🥇🩸", paper, 115, null, 110);
     </script>
 
     <script>
@@ -109,6 +112,9 @@
     <script type="text/paperscript" canvas="kill-streak-cantonese">
         firstBlood("連殺", paper);
     </script>
+    <script type="text/paperscript" canvas="kill-streak-emoji">
+        firstBlood("🔁💥", paper, 115, null, 110);
+    </script>
 
     <script type="text/javascript" >
         function killingblow(text, paper, size) {
@@ -119,8 +125,8 @@
             var text = new paper.PointText(new paper.Point(0, 0));
             var matrix = new paper.Matrix();
             matrix.skew(-8, 0, new paper.Point(175, 72.5));
-            matrix.rotate(-8, new paper.Point(175, 72.5))
-            matrix.translate(8, 100);
+            matrix.rotate(-10.5, new paper.Point(175, 72.5))
+            matrix.translate(8, 92.5);
 
             text.content = content;
             text.matrix = matrix;
@@ -169,6 +175,9 @@
     <script type="text/paperscript" canvas="killing-blow-cantonese">
         killingblow("殺人打擊", paper);
     </script>
+    <script type="text/paperscript" canvas="killing-blow-emoji">
+        killingblow("😵🎯", paper, 95);
+    </script>
 
 </head>
 <body>
@@ -178,6 +187,7 @@
     <canvas id="first-blood-japanese" width="350" height="150"></canvas>
     <canvas id="first-blood-thai" width="350" height="150"></canvas>
     <canvas id="first-blood-cantonese" width="350" height="150"></canvas>
+    <canvas id="first-blood-emoji" width="350" height="150"></canvas>
     <br>
     <canvas id="kill-streak-english" width="350" height="150"></canvas>
     <canvas id="kill-streak-shavian" width="350" height="150"></canvas>
@@ -185,6 +195,7 @@
     <canvas id="kill-streak-japanese" width="350" height="150"></canvas>
     <canvas id="kill-streak-thai" width="350" height="150"></canvas>
     <canvas id="kill-streak-cantonese" width="350" height="150"></canvas>
+    <canvas id="kill-streak-emoji" width="350" height="150"></canvas>
     <br>
     <canvas id="killing-blow-english" width="363" height="138"></canvas>
     <canvas id="killing-blow-shavian" width="363" height="138"></canvas>
@@ -192,5 +203,6 @@
     <canvas id="killing-blow-japanese" width="363" height="138"></canvas>
     <canvas id="killing-blow-thai" width="363" height="138"></canvas>
     <canvas id="killing-blow-cantonese" width="363" height="138"></canvas>
+    <canvas id="killing-blow-emoji" width="363" height="138"></canvas>
 </body>    
 </html>
