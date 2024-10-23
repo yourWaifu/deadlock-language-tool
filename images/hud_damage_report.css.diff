@@ -1,0 +1,41 @@
+diff --git "a/.\\images\\original\\hud_damage_report.css" "b/.\\images\\hud_damage_report.css"
+index bdc3520..2d6a834 100644
+--- "a/.\\images\\original\\hud_damage_report.css"
++++ "b/.\\images\\hud_damage_report.css"
+@@ -708,11 +708,36 @@
+ 	visibility: collapse;
+ }
+ 
++.killing_blow
++{
++	background-image: url("s2r://panorama/images/hud/text_images/killing_blow/killing_blow__png.vtex");
++}
++
+ .Language_english .killing_blow
+ {
+ 	background-image: url("s2r://panorama/images/hud/text_images/killing_blow/killing_blow_english_png.vtex");
+ }
+ 
++.Language_tchinese .killing_blow
++{
++	background-image: url("s2r://panorama/images/hud/text_images/killing_blow/killing_blow_tchinese_png.vtex");
++}
++
++.Language_cantonese .killing_blow
++{
++	background-image: url("s2r://panorama/images/hud/text_images/killing_blow/killing_blow_cantonese_png.vtex");
++}
++
++.Language_japanese .killing_blow
++{
++	background-image: url("s2r://panorama/images/hud/text_images/killing_blow/killing_blow_japanese_png.vtex");
++}
++
++.Language_shavian .killing_blow
++{
++	background-image: url("s2r://panorama/images/hud/text_images/killing_blow/killing_blow_shavian_png.vtex");
++}
++
+ .Language_schinese .killing_blow
+ {
+ 	background-image: url("s2r://panorama/images/hud/text_images/killing_blow/killing_blow_schinese_png.vtex");

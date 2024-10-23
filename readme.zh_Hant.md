@@ -29,7 +29,7 @@
 | XML | \<span class="bold"\>With \<span class="red"\>impact\</span>\</span> |  | ✔️ |
 | 新線路 | multiple\nlines |  | ✔️ |
 | 複數 | {d:spectators} Spectator#\|#{d:spectators} Spectators | 5 Spectators | ❌ |
-| 影像 | <img src="https://github.com/user-attachments/assets/0cbedda8-c17a-4b75-b5f0-a1f6b35d5758" height="32" alt="killing_blow_english_png"/> | <img src="https://github.com/user-attachments/assets/07477e93-9712-4dcf-a0c4-927c7ee042bf" height="32" alt="killing_blow_korean_png"/> | ❌     |
+| 影像 | <img src="https://github.com/user-attachments/assets/0cbedda8-c17a-4b75-b5f0-a1f6b35d5758" height="32" alt="killing_blow_english_png"/> | <img src="https://github.com/user-attachments/assets/07477e93-9712-4dcf-a0c4-927c7ee042bf" height="32" alt="killing_blow_korean_png"/> | 🏗️     |
 
 ## 如何使用
 
