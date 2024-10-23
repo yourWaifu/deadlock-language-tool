@@ -158,21 +158,26 @@ export async function translateFile(filePath, langConfig) {
             }
         }
 
-        if (value === "") {
+        let ignoreSet = new Set([
+            "Citadel_Scoreboard_KDA_Kills", "Citadel_Scoreboard_KDA_Deaths", "Citadel_Scoreboard_KDA_Assists"]);
+
+        if (ignoreSet.has(key) || value === "") {
+            // ignore net worth, due to automation failing here
             // skip empty strings
             // we still need to give it to the config, just in case it's counting them
             langConfig["onText"]?.(key, value);
             return;
         }
-    
-        let hash = crypto.hash("md5", value, "buffer");
 
+        // set up value setter to reduce code dup
+        let hash = crypto.hash("md5", value, "buffer");
         const setValue = (translated) => {
             valueMap.set(key, translated);
             langConfig["onText"]?.(key, translated);
             hashMap.set(key, hash);
         }
-    
+
+        // read cache to save time on already translated values
         if (prevRun !== null && !isFirstTime) {
             let prevInputHash = languageCache.get(key)?.inputHash;
             if (prevInputHash && prevInputHash.compare(hash) === 0) { // if both inputs are equal
@@ -184,6 +189,22 @@ export async function translateFile(filePath, langConfig) {
                 }
             }
         }
+
+        // handle number formats
+        let numberSet = new Set([
+            "Citadel_Hud_TopbarPlayerNetworthPlayerMed", "Citadel_Hud_TopbarPlayerNetworthPlayerHigh",
+            "Citadel_Hud_TopbarPlayerNetworth", "Citadel_Watch_Page_NetWorthTeam0", "Citadel_Watch_Page_NetWorthTeam1",
+            "Citadel_MatchDetails_Team1NetWorth", "Citadel_MatchDetails_Team2NetWorth"]);
+        if (numberSet.has(key)) {
+            let universalThousands = "󰀃"; // you need the special font to see it
+            let englishThousandsPattern = /\b[Kk]\b/g;
+            let universalText = value.replace(englishThousandsPattern, universalThousands);
+
+            setValue(universalText);
+            return;
+        }
+
+        // paring text for variables and features
         
         let variableLexer = new Tokenizr();
     
