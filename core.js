@@ -194,7 +194,8 @@ export async function translateFile(filePath, langConfig) {
         let numberSet = new Set([
             "Citadel_Hud_TopbarPlayerNetworthPlayerMed", "Citadel_Hud_TopbarPlayerNetworthPlayerHigh",
             "Citadel_Hud_TopbarPlayerNetworth", "Citadel_Watch_Page_NetWorthTeam0", "Citadel_Watch_Page_NetWorthTeam1",
-            "Citadel_MatchDetails_Team1NetWorth", "Citadel_MatchDetails_Team2NetWorth"]);
+            "Citadel_MatchDetails_Team1NetWorth", "Citadel_MatchDetails_Team2NetWorth",
+            "Citadel_Profile_Stats_Value_Networth_High"]);
         if (numberSet.has(key)) {
             let universalThousands = "󰀃"; // you need the special font to see it
             let englishThousandsPattern = /\b[Kk]\b/g;
