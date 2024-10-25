@@ -216,13 +216,14 @@ export async function translateFile(filePath, langConfig) {
             let match = /.*(:p|:p{(.*)})$/.exec(key);
             if (match && match[1]) {
                 let hasVariable = Boolean(match[2]);
-                if (pluralRules) {
+                // plurals without a variable are an exception. I don't know why
+                if (pluralRules || !hasVariable) {
                     usesPlurals = match[2] ?? true;
                 }
                 // the game doesn't support plurals for some languages
                 // those languages would crash when using plurals, so it's better to remove them
-                // for languages with only one plural rule, plurals without a variable shows up as null
-                let removePluralFromKey = usesPlurals === false || (pluralRules && pluralRules.length === 1 && !hasVariable);
+                // plurals without a variable are an exception. I don't know why
+                let removePluralFromKey = usesPlurals === false;
                 if (removePluralFromKey) {
                     valueMap.delete(key);
                     key = key.slice(0, match[1].length * -1);
@@ -309,8 +310,8 @@ export async function translateFile(filePath, langConfig) {
         var translatorFormatHintsStart = {
             "separated": () => {
                 if (usesPlurals === true) {
-                    textInputSplit.push(`{#|#0}`);
-                    variableTokenList.push(["#|#0", ""]);
+                    textInputSplit.push("{}");
+                    variableTokenList.push("");
                 }
             },
             "HTML": () => {
@@ -319,7 +320,7 @@ export async function translateFile(filePath, langConfig) {
                     // give hints to the translator for languages with plural rules
                     // languages with one plural rule, needs more hints
                     textInputSplit.push(
-                        `<var id="${key}">${1 <= pluralRules.length ? pluralRules[0].value : ""}${pluralRules.length === 1 ? "quantity" : ""} </var>`
+                        `<var id="${key}">${1 <= pluralRules.length ? pluralRules[0].value : ""}${pluralRules.length === 1 ? " quantity" : ""} </var>`
                     );
                     variableTokenList.push([key, ""]);
                 }
@@ -399,6 +400,7 @@ export async function translateFile(filePath, langConfig) {
             valueMap.delete(key);
             return;
         }
+
         let fromTranslatedToOutTransformer = {
             "separated": () => {
                 let translatedTextSplit = translatedText.split(/\{(.*?)\}/);
@@ -475,6 +477,9 @@ export async function translateFile(filePath, langConfig) {
     
         // Software often uses variables in their strings for language formats and changing values in text 
         let finishedText = fromTranslatedToOutTransformer[translatorFormat]();
+
+        // POST process
+
         setValue(finishedText);
         variableLexer.reset();
     }));
