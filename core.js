@@ -25,7 +25,10 @@ export async function translateFile(filePath, langConfig) {
     // lang config type checks
     const translatorFormat = langConfig["translatorFormat"];
     const language = langConfig["name"];
-    const knownFormats = {"separated": true, "HTML": true, "raw": true}
+    const knownFormats = {"separated": true, "HTML": true, "raw": true};
+    const pluralRules = langConfig["plurals"] ?? [
+        {"match": "one", "value": 1}, {"match": "other", "value": 9.9}
+    ];
     if (!knownFormats[translatorFormat]) {
         throw new Error("Unknown Translator format");
         return;
@@ -138,7 +141,7 @@ export async function translateFile(filePath, langConfig) {
     // --------------
 
     // 2nd token stage
-    let knownVariableSet = new Set("{", "}", "%s1", '%s2', '%s3', "<", ">", "\\");
+    let knownVariableSet = new Set(["{", "}", "%s1", '%s2', '%s3', "<", ">", "\\", "#|#"]);
 
     let lang = result.get("lang");
     lang.set("Language", targetLanguage);
@@ -205,6 +208,50 @@ export async function translateFile(filePath, langConfig) {
             return;
         }
 
+        // read key to get hints
+        let usesPlurals = false;
+        let pluralSeparators = [];
+        {
+            // https://regex101.com/r/7tlxsg/1
+            let match = /.*(:p|:p{(.*)})$/.exec(key);
+            if (match && match[1]) {
+                let hasVariable = Boolean(match[2]);
+                // plurals without a variable are an exception. I don't know why
+                if (pluralRules || !hasVariable) {
+                    usesPlurals = match[2] ?? true;
+                }
+                // the game doesn't support plurals for some languages
+                // those languages would crash when using plurals, so it's better to remove them
+                // plurals without a variable are an exception. I don't know why
+                let removePluralFromKey = usesPlurals === false;
+                if (removePluralFromKey) {
+                    valueMap.delete(key);
+                    key = key.slice(0, match[1].length * -1);
+                }
+                
+                // edit text to use more or less plurals if needed
+                let editedValueCount = pluralRules ? pluralRules.length : 1;
+                let values = value.split("#|#");
+                let editedTextList = [];
+                let repeatingText = 2 <= values.length ? values[1] : values[0];
+                if (editedValueCount === 1) {
+                    editedTextList.push(repeatingText);
+
+                } else if (2 <= editedValueCount) {
+                    editedTextList = values;
+                    while (editedTextList.length < editedValueCount) {
+                        editedTextList.push(repeatingText)
+                    }
+                }
+                value = editedTextList.join("#|#");
+
+                pluralSeparators.length = editedValueCount;
+                let pluralSeparator = /#\|#/g;
+                pluralSeparators = [...value.matchAll(pluralSeparator)].map(a => a.index);
+                pluralSeparators[editedValueCount - 1] = value.length;
+            }
+        }
+
         // paring text for variables and features
         
         let variableLexer = new Tokenizr();
@@ -227,6 +274,16 @@ export async function translateFile(filePath, langConfig) {
         variableLexer.rule(/\\./, (ctx, match) => {
             ctx.accept("escape");
         });
+        {
+            let pluralCount = 0;
+            variableLexer.rule(/#\|#/, (ctx, match) => {
+                pluralCount += 1;
+                ctx.accept("plural-separator", pluralCount);
+            });
+            variableLexer.finish((ctx) => {
+                pluralCount += 1;
+            });
+        }
         // I feel like this is slow, but not sure how else to do it
         {
             let plaintext = "";
@@ -250,6 +307,25 @@ export async function translateFile(filePath, langConfig) {
         let tokenList = variableLexer.tokens();
         let variableTokenList = [];
         let textInputSplit = [];
+        var translatorFormatHintsStart = {
+            "separated": () => {
+                if (usesPlurals === true) {
+                    textInputSplit.push("{}");
+                    variableTokenList.push("");
+                }
+            },
+            "HTML": () => {
+                if (usesPlurals === true) {
+                    let key = "#|#0";
+                    // give hints to the translator for languages with plural rules
+                    // languages with one plural rule, needs more hints
+                    textInputSplit.push(
+                        `<var id="${key}">${1 <= pluralRules.length ? pluralRules[0].value : ""}${pluralRules.length === 1 ? " quantity" : ""} </var>`
+                    );
+                    variableTokenList.push([key, ""]);
+                }
+            }
+        }
         var translatorFormatInputTransformer = {
             "separated": (token) => {
                 if (token.isA("plaintext")) { // {}
@@ -271,20 +347,48 @@ export async function translateFile(filePath, langConfig) {
                     return;
                 } else if (token.isA("escape")) {
                     textInputSplit.push(`<esc char="${token.text.slice(1)}"></esc>`);
-                } else {
-                    
-                    if (token.isA("variable")) {
-                        textInputSplit.push(`<var id="${token.value}"></var>`); // variable identifier
-                        variableTokenList.push([token.value, token.text]);
-                    } else if (token.isA("xml") || token.isA("xml-end")) {
-                        textInputSplit.push(token.value);
+                } else if (token.isA("xml") || token.isA("xml-end")) {
+                    textInputSplit.push(token.value);
+                } else if (token.isA("plural-separator")) {
+                    let key = `#|#${token.value}`;
+                    let text = "";
+                    if (pluralRules && usesPlurals === true && token.value < pluralRules.length) {
+                        // insert value to help translator
+                        text = pluralRules[token.value].value;
                     }
+                    textInputSplit.push(`<var id="${key}"> ${text}</var>`)
+                    variableTokenList.push([key, token.text]);
+                } else if (token.value) {
+                    let innerText = "";
+                    // get variable name to do additional logic
+                    // names are done like this {format:name} or {format:format-info:name}
+                    // {} not included, extracting the name is last : to end of string
+                    if (pluralRules && usesPlurals) {
+                        // https://regex101.com/r/dHb4ZT/1
+                        let match = /:(\w*)$/.exec(token.value);
+                        if (match && 2 <= match.length && match[1] === usesPlurals) {
+                            // the variable is a plural, so inner text should the plural value
+                            for (let index = 0; index < pluralSeparators.length; index += 1) {
+                                if (pluralRules.length < index) {
+                                    break;
+                                }
+                                if (token.pos < pluralSeparators[index]) {
+                                    innerText = pluralRules[index].value;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    textInputSplit.push(`<var id="${token.value}">${innerText}</var>`); // variable identifier
+                    variableTokenList.push([token.value, token.text]);
                 }
             },
             "raw": (token) => {
                 textInputSplit.push(token.value);
             }
         }
+        translatorFormatHintsStart[translatorFormat]();
         tokenList.forEach(translatorFormatInputTransformer[translatorFormat]);
         let textToTranslate = textInputSplit.join("");
         let translatedText = "";
@@ -296,6 +400,7 @@ export async function translateFile(filePath, langConfig) {
             valueMap.delete(key);
             return;
         }
+
         let fromTranslatedToOutTransformer = {
             "separated": () => {
                 let translatedTextSplit = translatedText.split(/\{(.*?)\}/);
@@ -311,8 +416,8 @@ export async function translateFile(filePath, langConfig) {
             },
             "HTML": () => {
                 let HTMLLexer = new Tokenizr();
-                HTMLLexer.rule(/<var id=\"(.*?)\"><\/var>/, (ctx, match) => {
-                    ctx.accept("variable", match[1]);
+                HTMLLexer.rule(/<var id=\"(.*?)\">(.*?)<\/var>/, (ctx, match) => {
+                    ctx.accept("variable", { id: match[1], inner: match[2] });
                 });
                 HTMLLexer.rule(/<esc char=\"(.*?)\"><\/esc>/, (ctx, match) => {
                     ctx.accept("escape", match[1]);
@@ -344,12 +449,22 @@ export async function translateFile(filePath, langConfig) {
                         transformedTextSplit.push(`\\${token.value}`);
                     } else if (token.isA("variable")) {
                         // we search a list instead of a map due to the possibility of dups
-                        let foundPair = variableTokenList.findIndex((pair) => pair[0] === token.value);
+                        let foundPair = variableTokenList.findIndex((pair) => pair[0] === token.value.id);
                         if (foundPair === undefined || foundPair === -1) {
                             throw Error("variable pair not found");
                             return;
                         }
-                        transformedTextSplit.push(variableTokenList[foundPair][1]);
+                        let variable = variableTokenList[foundPair][1];
+                        let nextText = variable;
+                        if (token.value.inner && token.value.inner !== "") {
+                            nextText = token.value.inner.replace(/[,\.0-9]+/g, variable).trim();
+                            if (token.value.id.startsWith("#|#")) {
+                                // handle plural separators with variables
+                                if (!nextText.includes("#|#"))
+                                    nextText = `${variable}${nextText}`;
+                            }
+                        }
+                        transformedTextSplit.push(nextText);
                         variableTokenList.splice(foundPair, 1);
                     }
                 });
@@ -362,6 +477,9 @@ export async function translateFile(filePath, langConfig) {
     
         // Software often uses variables in their strings for language formats and changing values in text 
         let finishedText = fromTranslatedToOutTransformer[translatorFormat]();
+
+        // POST process
+
         setValue(finishedText);
         variableLexer.reset();
     }));
