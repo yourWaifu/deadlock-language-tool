@@ -453,7 +453,7 @@ export async function translateFile(filePath, langConfig) {
                         let variable = variableTokenList[foundPair][1];
                         let nextText = variable;
                         if (token.value.inner && token.value.inner !== "") {
-                            nextText = token.value.inner.replace(/[\.0-9]+/g, variable).trim();
+                            nextText = token.value.inner.replace(/[,\.0-9]+/g, variable).trim();
                             if (token.value.id.startsWith("#|#")) {
                                 // handle plural separators with variables
                                 if (!nextText.includes("#|#"))
