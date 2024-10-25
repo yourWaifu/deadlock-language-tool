@@ -5,6 +5,10 @@ import {translateFile, saveCache} from "./core.js";
 let englishLangConfig = {
     "translatorFormat": "HTML",
     "name": "english",
+    "plurals": [
+        // match is the category or rule, and value is a number given to the translator for that rule
+        {"match": "one", "value": 1}, {"match": "other", "value": 9}
+    ],
     "translate": (textToTranslate) => textToTranslate,
 };
 

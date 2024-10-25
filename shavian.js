@@ -4,6 +4,7 @@ import {translateFile, saveCache} from "./core.js";
 let shavianLangConfig = {
     "translatorFormat": "separated",
     "name": "shavian",
+    "plurals": false, // remove plurals from text
     "translate": (textToTranslate) => toShavian(textToTranslate),
 };
 
