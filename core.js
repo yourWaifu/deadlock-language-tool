@@ -316,8 +316,10 @@ export async function translateFile(filePath, langConfig) {
             "HTML": () => {
                 if (usesPlurals === true) {
                     let key = "#|#0";
+                    // give hints to the translator for languages with plural rules
+                    // languages with one plural rule, needs more hints
                     textInputSplit.push(
-                        `<var id="${key}">${1 <= pluralRules.length ? pluralRules[0].value : ""} quantity </var>`
+                        `<var id="${key}">${1 <= pluralRules.length ? pluralRules[0].value : ""}${pluralRules.length === 1 ? "quantity" : ""} </var>`
                     );
                     variableTokenList.push([key, ""]);
                 }
