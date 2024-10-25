@@ -215,15 +215,19 @@ export async function translateFile(filePath, langConfig) {
             // https://regex101.com/r/7tlxsg/1
             let match = /.*(:p|:p{(.*)})$/.exec(key);
             if (match && match[1]) {
-                // the game doesn't support plurals for some languages
-                // those languages would crash when using plurals, so it's better to remove them
-                if (!pluralRules) {
-                    valueMap.delete(key);
-                    key = key.slice(0, match[1].length * -1);
-                } else {
+                let hasVariable = Boolean(match[2]);
+                if (pluralRules) {
                     usesPlurals = match[2] ?? true;
                 }
-
+                // the game doesn't support plurals for some languages
+                // those languages would crash when using plurals, so it's better to remove them
+                // for languages with only one plural rule, plurals without a variable shows up as null
+                let removePluralFromKey = usesPlurals === false || (pluralRules && pluralRules.length === 1 && !hasVariable);
+                if (removePluralFromKey) {
+                    valueMap.delete(key);
+                    key = key.slice(0, match[1].length * -1);
+                }
+                
                 // edit text to use more or less plurals if needed
                 let editedValueCount = pluralRules ? pluralRules.length : 1;
                 let values = value.split("#|#");
@@ -231,6 +235,7 @@ export async function translateFile(filePath, langConfig) {
                 let repeatingText = 2 <= values.length ? values[1] : values[0];
                 if (editedValueCount === 1) {
                     editedTextList.push(repeatingText);
+
                 } else if (2 <= editedValueCount) {
                     editedTextList = values;
                     while (editedTextList.length < editedValueCount) {
@@ -238,6 +243,7 @@ export async function translateFile(filePath, langConfig) {
                     }
                 }
                 value = editedTextList.join("#|#");
+
                 pluralSeparators.length = editedValueCount;
                 let pluralSeparator = /#\|#/g;
                 pluralSeparators = [...value.matchAll(pluralSeparator)].map(a => a.index);
@@ -300,6 +306,23 @@ export async function translateFile(filePath, langConfig) {
         let tokenList = variableLexer.tokens();
         let variableTokenList = [];
         let textInputSplit = [];
+        var translatorFormatHintsStart = {
+            "separated": () => {
+                if (usesPlurals === true) {
+                    textInputSplit.push(`{#|#0}`);
+                    variableTokenList.push(["#|#0", ""]);
+                }
+            },
+            "HTML": () => {
+                if (usesPlurals === true) {
+                    let key = "#|#0";
+                    textInputSplit.push(
+                        `<var id="${key}">${1 <= pluralRules.length ? pluralRules[0].value : ""} quantity </var>`
+                    );
+                    variableTokenList.push([key, ""]);
+                }
+            }
+        }
         var translatorFormatInputTransformer = {
             "separated": (token) => {
                 if (token.isA("plaintext")) { // {}
@@ -362,6 +385,7 @@ export async function translateFile(filePath, langConfig) {
                 textInputSplit.push(token.value);
             }
         }
+        translatorFormatHintsStart[translatorFormat]();
         tokenList.forEach(translatorFormatInputTransformer[translatorFormat]);
         let textToTranslate = textInputSplit.join("");
         let translatedText = "";

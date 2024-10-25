@@ -62,7 +62,7 @@ function createConfig(){
     return {
         "translatorFormat": "HTML",
         "name": languageName,
-        "plurals": [{"match": "other", "value": 9.9}],
+        "plurals": [{"match": "other", "value": 999}],
         "onParsedFile": (fileAsMap) => {
             textTotalCount = fileAsMap.size;
         },
