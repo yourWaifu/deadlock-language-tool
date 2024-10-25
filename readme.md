@@ -10,16 +10,16 @@ Automatic language translation tool for the game Deadlock. Not a replacement for
 
 ## Features
 
-|            | yes | no   | broken | incomplete | same as english |
-| ---------- | --- | ---- | ------ | ---------- | --------------- |
-| Map Legend | ✔️ | ❌   | ⛓️‍💥    | 🏗️         | 🇬🇧              |
+|            | yes | no   | broken | incomplete | same as english | Not applicable | game can't do |
+| ---------- | --- | ---- | ------ | ---------- | --------------- | -------------- | ------------- |
+| Map Legend | ✔️ | ❌   | ⛓️‍💥    | 🏗️         | 🇬🇧              | ⭕            | 🕳️            |
 
-| Language              | text | variables | format | affix | XML | new lines |
-| --------------------- | ---- | --------- | ------ | ----- | --- | --------- |
-| Shavian               | ✔️  | ✔️        | ⛓️‍💥    | 🇬🇧    | ✔️  | ✔️       |
-| Chinese (Traditional) | ✔️  | ✔️        | ❌    | ❌    | ✔️ | ✔️        |
-| Japanese              | ✔️  | ❌        | ❌    | ❌    | ❌ | ❌        |
-| Thai                  | ✔️  | ❌        | ❌    | ❌    | ❌ | ❌        |
+| Language              | text | variables | format | affix | XML | new lines | plurals |
+| --------------------- | ---- | --------- | ------ | ----- | --- | --------- | ------- |
+| Shavian               | ✔️  | ✔️        | ⛓️‍💥    | 🇬🇧    | ✔️  | ✔️       | 🕳️       |
+| Chinese (Traditional) | ✔️  | ✔️        | ❌    | ❌    | ✔️ | ✔️        | ⭕      |
+| Japanese              | ✔️  | ❌        | ❌    | ❌    | ❌ | ❌        | ⭕      |
+| Thai                  | ✔️  | ❌        | ❌    | ❌    | ❌ | ❌        | ⭕       |
 
 |  feature  |   example                                                            | result         | able to |
 | --------- | -------------------------------------------------------------------- | -------------- | ------- |
