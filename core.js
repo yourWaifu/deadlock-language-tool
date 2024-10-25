@@ -27,7 +27,7 @@ export async function translateFile(filePath, langConfig) {
     const language = langConfig["name"];
     const knownFormats = {"separated": true, "HTML": true, "raw": true};
     const pluralRules = langConfig["plurals"] ?? [
-        {"match": "one", "value": 1}, {"match": "other", "value": 9}
+        {"match": "one", "value": 1}, {"match": "other", "value": 9.9}
     ];
     if (!knownFormats[translatorFormat]) {
         throw new Error("Unknown Translator format");
@@ -330,7 +330,7 @@ export async function translateFile(filePath, langConfig) {
                         // insert value to help translator
                         text = pluralRules[token.value].value;
                     }
-                    textInputSplit.push(`<var id="${key}">. ${text}</var>`)
+                    textInputSplit.push(`<var id="${key}"> ${text}</var>`)
                     variableTokenList.push([key, token.text]);
                 } else if (token.value) {
                     let innerText = "";
@@ -388,8 +388,8 @@ export async function translateFile(filePath, langConfig) {
             },
             "HTML": () => {
                 let HTMLLexer = new Tokenizr();
-                HTMLLexer.rule(/<var id=\"(.*?)\">(<\/var>|.*?<\/var>)/, (ctx, match) => {
-                    ctx.accept("variable", match[1]);
+                HTMLLexer.rule(/<var id=\"(.*?)\">(.*?)<\/var>/, (ctx, match) => {
+                    ctx.accept("variable", { id: match[1], inner: match[2] });
                 });
                 HTMLLexer.rule(/<esc char=\"(.*?)\"><\/esc>/, (ctx, match) => {
                     ctx.accept("escape", match[1]);
@@ -421,12 +421,22 @@ export async function translateFile(filePath, langConfig) {
                         transformedTextSplit.push(`\\${token.value}`);
                     } else if (token.isA("variable")) {
                         // we search a list instead of a map due to the possibility of dups
-                        let foundPair = variableTokenList.findIndex((pair) => pair[0] === token.value);
+                        let foundPair = variableTokenList.findIndex((pair) => pair[0] === token.value.id);
                         if (foundPair === undefined || foundPair === -1) {
                             throw Error("variable pair not found");
                             return;
                         }
-                        transformedTextSplit.push(variableTokenList[foundPair][1]);
+                        let variable = variableTokenList[foundPair][1];
+                        let nextText = variable;
+                        if (token.value.inner && token.value.inner !== "") {
+                            nextText = token.value.inner.replace(/[\.0-9]+/g, variable).trim();
+                            if (token.value.id.startsWith("#|#")) {
+                                // handle plural separators with variables
+                                if (!nextText.includes("#|#"))
+                                    nextText = `${variable}${nextText}`;
+                            }
+                        }
+                        transformedTextSplit.push(nextText);
                         variableTokenList.splice(foundPair, 1);
                     }
                 });
