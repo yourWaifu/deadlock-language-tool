@@ -81,13 +81,14 @@ function createConfig(){
             onAllText();
             return translateSingle(textToTranslate, id);
         },
-        "postProcess": ({translatedText, usesPlurals, pluralKey}) => {
+        "postProcess": (data) => {
+            let {translatedText, usesPlurals, pluralKey} = data;
             if (languageCode === "zh-tw" && usesPlurals && pluralKey === null) {
                 // handle strange edge case, plurals without a variable in chinese.
                 // for some reason, it needs two plurals when there's only one plural rule.
                 // adding a plural separator and a dup should make it behave as one plural
                 // rule while using two plurals
-                translatedText = `${translatedText}#|#${translatedText}`;
+                data.translatedText = `${translatedText}#|#${translatedText}`;
             }
         },
     };
