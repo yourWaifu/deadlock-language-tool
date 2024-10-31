@@ -419,7 +419,7 @@ export async function translateFile(filePath, langConfig) {
                 HTMLLexer.rule(/<var id=\"(.*?)\">(.*?)<\/var>/, (ctx, match) => {
                     ctx.accept("variable", { id: match[1], inner: match[2] });
                 });
-                HTMLLexer.rule(/<esc char=\"(.*?)\"><\/esc>/, (ctx, match) => {
+                HTMLLexer.rule(/<esc char=\"(.*?)\">.*?<\/esc>/, (ctx, match) => {
                     ctx.accept("escape", match[1]);
                 });
                 {
