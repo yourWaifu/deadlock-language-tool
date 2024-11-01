@@ -2,14 +2,68 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <script type="text/javascript"  src="node_modules/paper/dist/paper-full.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+
     <script type="text/javascript" >
+        function addCanvasWithFields({element, size}, fieldList, onInput) {
+            const types = {
+                "string": {inputType: "text"},
+                "float": {inputType: "number"}
+            };
+            const fieldsElement = document.createElement("div");
+            let fieldInputElementList = [];
+            const canvasNode = document.createElement("canvas");
+            if (size) {
+                canvasNode.width = size[0];
+                canvasNode.height = size[1];
+            } else {
+                canvasNode.resize = true;
+            }
+
+            fieldInputElementList = fieldList.map((field) => {
+                fieldsElement.appendChild(document.createTextNode(field.name));
+                let input = document.createElement("input");
+                input.type = types[field.type]?.inputType ?? "text";
+                input.value = field.default;
+                fieldsElement.appendChild(input);
+                return input;
+            });
+
+            let paper = Bundle.setupPaper(canvasNode);
+            let paperObjHolder = {};
+            const valueToType = {
+                "string": (element) => element.value,
+                "float": (element) => {
+                    let number = parseFloat(element.value);
+                    return !isNaN(number) ? number : null;
+                }
+            }
+            let inputChangeEvent = () => {
+                paper.activate();
+                paperObjHolder = onInput(fieldInputElementList.map((element, index) => {
+                    return valueToType[fieldList[index].type]?.(element);
+                }), paper, paperObjHolder);
+                paper.view.draw();
+            };
+            inputChangeEvent();
+            fieldInputElementList.forEach(element => {
+                element.addEventListener("input", inputChangeEvent);
+            });
+
+            element.appendChild(fieldsElement);
+            element.appendChild(canvasNode);
+        }
+
+        const baseCanvasFields = [
+            {name: "text", type: "string", default: "text input"},
+        ];
+
         var fontSize = 73.5;
-        function firstBlood(text, paper, size, x, y) {
+        function firstBlood(text, paper, size, x, y, prev) {
             var content = text;
             var strokeColor = "rgba(220, 47, 0, 0.929411765)";
             var textColor = "#fff2db";
-            var text = new paper.PointText(new paper.Point(0, 0));
+            var text = prev?.text ?? new paper.PointText(new paper.Point(0, 0));
             var matrix = new paper.Matrix();
             matrix.skew(-8, 0, new paper.Point(175, 72.5));
             matrix.rotate(-4, new paper.Point(175, 72.5))
@@ -28,7 +82,7 @@
                 fillColor: "rgba(0,0,0,0)",
             };
             text.justification = "left";
-            var text2 = new paper.PointText(new paper.Point(175, 60));
+            var text2 = prev?.text2 ?? new paper.PointText(new paper.Point(175, 60));
             text2.matrix = matrix;
             text2.content = content;
             text2.fontSize = text.fontSize;
@@ -41,6 +95,7 @@
                 fillColor: textColor,
             };
             text2.justification = "left";
+            return {text, text2};
         }
     </script>
 
@@ -68,9 +123,9 @@
 
     <script>
         var loadingFontSize = 32;
-        function loading(text, paper) {
+        function loading(text, paper, prev) {
             var imageURL = "citadel_loading_base.png";
-            var raster = new paper.Raster({
+            var raster = prev.raster ?? new paper.Raster({
                 source: imageURL,
                 width: 2048,
                 height: 1024,
@@ -80,7 +135,7 @@
 
             var content = text;
             var textColor = "rgba(192, 192, 192, 1)";
-            var text = new paper.PointText(new paper.Point(175, 60));
+            var text = prev?.text ?? new paper.PointText(new paper.Point(175, 60));
 
             text.content = content;
             text.fontSize = loadingFontSize;
@@ -91,6 +146,7 @@
                 fillColor: textColor,
             };
             text.justification = "center";
+            return {raster, text};
         }
     </script>
 
@@ -117,12 +173,12 @@
     </script>
 
     <script type="text/javascript" >
-        function killingblow(text, paper, size) {
+        function killingblow(text, paper, size, prev) {
             var fontSize = size ?? 60;
             var content = text;
             var strokeColor = "rgba(220, 47, 0, 0.929411765)";
             var textColor = "#fff2db";
-            var text = new paper.PointText(new paper.Point(0, 0));
+            var text = prev?.text ?? new paper.PointText(new paper.Point(0, 0));
             var matrix = new paper.Matrix();
             matrix.skew(-8, 0, new paper.Point(175, 72.5));
             matrix.rotate(-10.5, new paper.Point(175, 72.5))
@@ -141,7 +197,7 @@
                 fillColor: "rgba(0,0,0,0)",
             };
             text.justification = "left";
-            var text2 = new paper.PointText(new paper.Point(175, 60));
+            var text2 = prev?.text2 ?? new paper.PointText(new paper.Point(175, 60));
             text2.matrix = matrix;
             text2.content = content;
             text2.fontSize = text.fontSize;
@@ -154,6 +210,7 @@
                 fillColor: textColor,
             };
             text2.justification = "left";
+            return {text, text2};
         }
     </script>
 
@@ -188,6 +245,22 @@
     <canvas id="first-blood-thai" width="350" height="150"></canvas>
     <canvas id="first-blood-cantonese" width="350" height="150"></canvas>
     <canvas id="first-blood-emoji" width="350" height="150"></canvas>
+    <div id="first-blood-io"></div>
+    <script type="text/javascript">
+        const firstBloodFields = [
+            ...baseCanvasFields,
+            {name: "fontSize", type: "string", default: "74"},
+            {name: "x", type: "float"},
+            {name: "y", type: "float"},
+        ];
+        const firstBloodOnInput = ([text, fontSize, x, y], paper, prev) => {
+            return firstBlood(text, paper, fontSize, x, y, prev)
+        }
+        addCanvasWithFields({
+            element: document.getElementById("first-blood-io"),
+            size: ["350", "150"],
+        }, firstBloodFields, firstBloodOnInput);
+    </script>
     <br>
     <canvas id="kill-streak-english" width="350" height="150"></canvas>
     <canvas id="kill-streak-shavian" width="350" height="150"></canvas>
@@ -196,6 +269,13 @@
     <canvas id="kill-streak-thai" width="350" height="150"></canvas>
     <canvas id="kill-streak-cantonese" width="350" height="150"></canvas>
     <canvas id="kill-streak-emoji" width="350" height="150"></canvas>
+    <div id="kill-streak-io"></div>
+    <script type="text/javascript">
+        addCanvasWithFields({
+            element: document.getElementById("kill-streak-io"),
+            size: ["350", "150"],
+        }, firstBloodFields, firstBloodOnInput);
+    </script>
     <br>
     <canvas id="killing-blow-english" width="363" height="138"></canvas>
     <canvas id="killing-blow-shavian" width="363" height="138"></canvas>
@@ -204,5 +284,17 @@
     <canvas id="killing-blow-thai" width="363" height="138"></canvas>
     <canvas id="killing-blow-cantonese" width="363" height="138"></canvas>
     <canvas id="killing-blow-emoji" width="363" height="138"></canvas>
+    <div id="killing-blow-io"></div>
+    <script type="text/javascript">
+        addCanvasWithFields({
+            element: document.getElementById("killing-blow-io"),
+            size: ["363", "138"],
+        }, [
+            ...baseCanvasFields,
+            {name: "fontSize", type: "string", default: "60"},
+        ], ([text, fontSize], paper, prev) => {
+            return killingblow(text, paper, fontSize, prev);
+        });
+    </script>
 </body>    
 </html>

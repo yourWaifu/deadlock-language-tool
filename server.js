@@ -3,19 +3,20 @@ import {readFile} from "node:fs/promises"
 import path from "node:path";
 import {rollup} from "rollup";
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 const inputOptions = {
-    input: {
-        "js/index.js": "./web/js/index.js"
-    },
+    input: ["./web/js/index.js"],
     plugins: [
-        nodeResolve()
+        nodeResolve({browser: true}),
+        commonjs({transformMixedEsModules:true})
     ]
 };
 
 const outputOptionsList = [
     {
-        dir: "web/client/",
+        name: "Bundle",
+        dir: "web/client/js/",
         format: "iife",
         sourcemap: true,
         generatedCode: "es2015",
@@ -38,6 +39,9 @@ async function build() {
     if (bundle) {
         await bundle.close();
     }
+    if (modules) {
+        console.log(Object.keys(modules))
+    }
     return buildFailed ? false : true;
 }
 
@@ -47,13 +51,9 @@ async function generateOutputs(bundle) {
 
         for (const chunkOrAsset of output) {
             if (chunkOrAsset.type === "asset") {
-                console.log('Asset', chunkOrAsset);
+                modules = {...modules, [chunkOrAsset.fileName]: {code: chunkOrAsset.source}};
             } else {
-                let incomingModules = {};
-                for (let [key, value] of Object.entries(chunkOrAsset.modules)) {
-                    incomingModules[path.relative("./", key)] = value;
-                }
-                modules = {...modules, ...incomingModules};
+                modules = {...modules, [chunkOrAsset.fileName]: {code: chunkOrAsset.code}};
             }
         }
     }
