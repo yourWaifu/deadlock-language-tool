@@ -16,6 +16,8 @@
             if (size) {
                 canvasNode.width = size[0];
                 canvasNode.height = size[1];
+                // make it blurry but ensure that the resolution is correct
+                canvasNode.setAttribute("hidpi", "false");
             } else {
                 canvasNode.resize = true;
             }
@@ -50,6 +52,17 @@
                 element.addEventListener("input", inputChangeEvent);
             });
 
+            let exportNode = document.createElement("button");
+            exportNode.innerText = "export";
+            exportNode.addEventListener("click", () => {
+                paper.view.draw(); // ensure that the scene is drawn
+                canvasNode.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    window.open(url, "_blank"); // opens in new tab
+                })
+            });
+            fieldsElement.appendChild(exportNode);
+
             element.appendChild(fieldsElement);
             element.appendChild(canvasNode);
         }
@@ -57,6 +70,18 @@
         const baseCanvasFields = [
             {name: "text", type: "string", default: "text input"},
         ];
+
+        function parseFontSize(fontSize) {
+            // if size is a string split it into unit and number
+            let fontSizeUnit = "";
+            let fontSizeNum = fontSize;
+            if (typeof(fontSizeNum) !== "number") {
+                const match = fontSizeNum.match(/([\d|\.]+)(.*)/);
+                fontSizeNum = match ? match[1] : 0;
+                fontSizeUnit = match ? match[2] : '';
+            }
+            return [fontSizeNum, fontSizeUnit];
+        }
 
         var fontSize = 73.5;
         function firstBlood(text, paper, size, x, y, prev) {
@@ -72,11 +97,12 @@
             text.content = content;
             text.matrix = matrix;
             text.fontSize = size ?? fontSize;
+            let [fontSizeNum, fontSizeUnit] = parseFontSize(text.fontSize);
             text.fontFamily = "sans-serif";
             text.fontWeight = "bold";
-            text.leading = 0.815 * text.fontSize;
+            text.leading = 0.815 * fontSizeNum;
             text.strokeColor = strokeColor;
-            text.strokeWidth = 0.23 * text.fontSize;
+            text.strokeWidth = 0.23 * fontSizeNum;
             text.strokeJoin = "round";
             text.style = {
                 fillColor: "rgba(0,0,0,0)",
@@ -88,7 +114,7 @@
             text2.fontSize = text.fontSize;
             text2.fontFamily = "sans-serif";
             text2.fontWeight = "bold";
-            text2.leading = 0.815 * text.fontSize;
+            text2.leading = text.leading;
             text2.strokeColor = "rgba(0,0,0,0)";
             text2.strokeWidth = text.strokeWidth;
             text2.style = {
@@ -174,7 +200,7 @@
 
     <script type="text/javascript" >
         function killingblow(text, paper, size, prev) {
-            var fontSize = size ?? 60;
+            var fontSize = size ?? "60px";
             var content = text;
             var strokeColor = "rgba(220, 47, 0, 0.929411765)";
             var textColor = "#fff2db";
@@ -187,11 +213,12 @@
             text.content = content;
             text.matrix = matrix;
             text.fontSize = fontSize;
+            let [fontSizeNum, fontSizeUnit] = parseFontSize(text.fontSize);
             text.fontFamily = "sans-serif";
             text.fontWeight = "bold";
-            text.leading = 0.815 * text.fontSize;
+            text.leading = 0.815 * fontSizeNum;
             text.strokeColor = strokeColor;
-            text.strokeWidth = 0.24 * text.fontSize;
+            text.strokeWidth = 0.24 * fontSizeNum;
             text.strokeJoin = "round";
             text.style = {
                 fillColor: "rgba(0,0,0,0)",
@@ -203,7 +230,7 @@
             text2.fontSize = text.fontSize;
             text2.fontFamily = "sans-serif";
             text2.fontWeight = "bold";
-            text2.leading = 0.815 * text.fontSize;
+            text2.leading = text.leading;
             text2.strokeColor = "rgba(0,0,0,0)";
             text2.strokeWidth = text.strokeWidth;
             text2.style = {
