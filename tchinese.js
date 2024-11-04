@@ -112,7 +112,7 @@ async function translateCloudFile(fileName, outputPath) {
 
 const storageClient = doLongText ? new Storage() : null;
 const bucket = storageClient ? storageClient.bucket(bucketName) : null;
-const bucketExist = bucket.exists();
+const bucketExist = doLongText ? bucket.exists() : false;
 let nextFileNumber = doLongText ? 0 : null;
 async function translateLong(textToTranslate) {
     if (!doLongText) {
