@@ -200,7 +200,7 @@ export async function translateFile(filePath, langConfig) {
             "Citadel_MatchDetails_Team1NetWorth", "Citadel_MatchDetails_Team2NetWorth",
             "Citadel_Profile_Stats_Value_Networth_High"]);
         if (numberSet.has(key)) {
-            let universalThousands = "󰀃"; // you need the special font to see it
+            let universalThousands = "𐍋"; // you need the special font to see it
             let englishThousandsPattern = /\b[Kk]\b/g;
             let universalText = value.replace(englishThousandsPattern, universalThousands);
 
@@ -419,7 +419,7 @@ export async function translateFile(filePath, langConfig) {
                 HTMLLexer.rule(/<var id=\"(.*?)\">(.*?)<\/var>/, (ctx, match) => {
                     ctx.accept("variable", { id: match[1], inner: match[2] });
                 });
-                HTMLLexer.rule(/<esc char=\"(.*?)\"><\/esc>/, (ctx, match) => {
+                HTMLLexer.rule(/<esc char=\"(.*?)\">.*?<\/esc>/, (ctx, match) => {
                     ctx.accept("escape", match[1]);
                 });
                 {
