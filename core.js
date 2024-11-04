@@ -479,6 +479,19 @@ export async function translateFile(filePath, langConfig) {
         let finishedText = fromTranslatedToOutTransformer[translatorFormat]();
 
         // POST process
+        if (langConfig["postProcess"]) {
+            langConfig["postProcess"]({
+                key,
+                get translatedText() {
+                    return finishedText;
+                },
+                set translatedText(incomingText) {
+                    finishedText = incomingText;
+                },
+                usesPlurals: Boolean(usesPlurals),
+                pluralKey: typeof usesPlurals === "boolean" ? null : usesPlurals,
+            });
+        }
 
         setValue(finishedText);
         variableLexer.reset();
