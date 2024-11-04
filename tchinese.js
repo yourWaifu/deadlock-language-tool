@@ -18,8 +18,8 @@ const doLongText = true;
 const translationClient = new TranslationServiceClient();
 
 // includes google's attribution to follow their rules
-const googleTranslateAttribution = "󰀂"; // you need the special font to see it
-const googleShortAttribution = "󰀁";
+const googleTranslateAttribution = "𐍍"; // you need the special font to see it
+const googleShortAttribution = "𐍌";
 let translateAdditionList = new Map([
     ["Citadel_Hud_DebugStats", (text) => `${googleShortAttribution} ${text}`],
     ["Citadel_Dashboard_BuildVersion", (text) => `${text} ${googleTranslateAttribution}`],
